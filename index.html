@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KYC Verification Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+
+  <header>
+    <div class="logo">
+      <span class="logo-icon">⬡</span>
+      <span>KYC<strong>Vault</strong></span>
+    </div>
+    <div class="badge">Secure · Azure · Encrypted</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Document<br/><em>Verification</em><br/>System</h1>
+      <p class="subtitle">Upload KYC documents securely to Azure Blob Storage with IAM-controlled access and presigned URL delivery.</p>
+    </section>
+
+    <div class="panels">
+
+      <!-- Upload Panel -->
+      <div class="panel" id="uploadPanel">
+        <div class="panel-header">
+          <span class="panel-num">01</span>
+          <h2>Submit KYC Documents</h2>
+        </div>
+
+        <div class="field">
+          <label>Phone Number <span class="req">*</span></label>
+          <input type="tel" id="phone" placeholder="e.g. 9876543210" maxlength="10" />
+        </div>
+
+        <div class="field">
+          <label>User Type</label>
+          <div class="toggle-group">
+            <button class="toggle active" onclick="setUserType('user', this)">End User</button>
+            <button class="toggle" onclick="setUserType('provider', this)">Provider</button>
+          </div>
+          <input type="hidden" id="userType" value="user" />
+        </div>
+
+        <div class="field">
+          <label>Aadhaar Card Image <span class="req">*</span></label>
+          <div class="file-drop" id="aadharDrop" onclick="document.getElementById('aadhar').click()">
+            <span class="file-icon">🪪</span>
+            <span id="aadharLabel">Click to upload Aadhaar</span>
+            <input type="file" id="aadhar" accept="image/*" style="display:none" onchange="setFileLabel('aadhar','aadharLabel')" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Selfie Photograph <span class="req">*</span></label>
+          <div class="file-drop" id="selfieDrop" onclick="document.getElementById('selfie').click()">
+            <span class="file-icon">🤳</span>
+            <span id="selfieLabel">Click to upload Selfie</span>
+            <input type="file" id="selfie" accept="image/*" style="display:none" onchange="setFileLabel('selfie','selfieLabel')" />
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="uploadKYC()" id="uploadBtn">
+          <span>Upload Documents</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+
+        <div id="uploadStatus"></div>
+      </div>
+
+      <!-- URL Panel -->
+      <div class="panel" id="urlPanel">
+        <div class="panel-header">
+          <span class="panel-num">02</span>
+          <h2>Get Secure Access URL</h2>
+        </div>
+
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" id="urlPhone" placeholder="e.g. 9876543210" maxlength="10" />
+        </div>
+
+        <div class="field">
+          <label>Document Type</label>
+          <select id="docType">
+            <option value="aadhar">Aadhaar Card</option>
+            <option value="selfImage">Selfie Photo</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>User Type</label>
+          <select id="urlUserType">
+            <option value="user">End User</option>
+            <option value="provider">Provider</option>
+          </select>
+        </div>
+
+        <button class="btn-secondary" onclick="getPresignedUrl()">
+          <span>Generate URL (15 min)</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+        </button>
+
+        <div id="urlResult"></div>
+      </div>
+
+      <!-- Admin Panel -->
+      <div class="panel" id="adminPanel">
+        <div class="panel-header">
+          <span class="panel-num">03</span>
+          <h2>Admin — View Documents</h2>
+        </div>
+
+        <div class="field">
+          <label>Phone Number</label>
+          <input type="tel" id="adminPhone" placeholder="e.g. 9876543210" maxlength="10" />
+        </div>
+
+        <div class="field">
+          <label>User Type</label>
+          <select id="adminUserType">
+            <option value="user">End User</option>
+            <option value="provider">Provider</option>
+          </select>
+        </div>
+
+        <button class="btn-ghost" onclick="listDocuments()">
+          <span>List Documents</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        </button>
+
+        <div id="adminResult"></div>
+      </div>
+
+    </div>
+
+    <!-- API Docs hint -->
+    <div class="api-hint">
+      <span>🔧 Backend API Docs available at</span>
+      <code id="apiDocsLink">/docs</code>
+    </div>
+
+  </main>
+
+  <footer>
+    <p>KYC Verification System · M.H. Saboo Siddik College of Engineering · AY 2025-26</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
